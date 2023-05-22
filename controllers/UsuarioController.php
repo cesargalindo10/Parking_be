@@ -15,9 +15,8 @@ class UsuarioController extends \yii\web\Controller
         $behaviors['verbs'] = [
             'class' => \yii\filters\VerbFilter::class,
             'actions' => [
-                'login' => [ 'POST' ],
                 'create-user'=>['POST'],
-                'edit-user'=>['POST']
+                'update'=>['POST']
 
             ]
          ];
