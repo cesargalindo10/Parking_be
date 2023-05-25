@@ -12,9 +12,12 @@ use Yii;
  * @property int $ci
  * @property string $email
  * @property string $placa
- * @property bool $estado
+ * @property bool|null $estado
+ * @property string $password_hash
+ * @property string $access_token
  *
  * @property Reserva[] $reservas
+ * @property Sugerencia[] $sugerencias
  */
 class Cliente extends \yii\db\ActiveRecord
 {
@@ -32,10 +35,11 @@ class Cliente extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['nombre_completo', 'ci', 'email', 'placa'], 'required'],
+            [['nombre_completo', 'ci', 'email', 'placa', 'password_hash', 'access_token'], 'required'],
             [['ci'], 'default', 'value' => null],
             [['ci'], 'integer'],
             [['estado'], 'boolean'],
+            [['password_hash', 'access_token'], 'string'],
             [['nombre_completo'], 'string', 'max' => 50],
             [['email'], 'string', 'max' => 80],
             [['placa'], 'string', 'max' => 10],
@@ -54,6 +58,8 @@ class Cliente extends \yii\db\ActiveRecord
             'email' => 'Email',
             'placa' => 'Placa',
             'estado' => 'Estado',
+            'password_hash' => 'Password Hash',
+            'access_token' => 'Access Token',
         ];
     }
 
@@ -65,5 +71,15 @@ class Cliente extends \yii\db\ActiveRecord
     public function getReservas()
     {
         return $this->hasMany(Reserva::class, ['cliente_id' => 'id']);
+    }
+
+    /**
+     * Gets query for [[Sugerencias]].
+     *
+     * @return \yii\db\ActiveQuery
+     */
+    public function getSugerencias()
+    {
+        return $this->hasMany(Sugerencia::class, ['cliente_id' => 'id']);
     }
 }

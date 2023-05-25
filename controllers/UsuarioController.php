@@ -2,6 +2,7 @@
 
 namespace app\controllers;
 
+use app\models\User;
 use app\models\Usuario;
 use Yii;
 use Exception;
@@ -36,6 +37,8 @@ class UsuarioController extends \yii\web\Controller
     public function actionCreateUser(){
         $params = Yii::$app->getRequest()->getBodyParams();
         $user = new Usuario();
+        $user->password_hash = Yii::$app->getSecurity()->generatePasswordHash($params["password"]);
+        $user->access_token = Yii::$app->security->generateRandomString();
         $user->load($params, "");
         try{
             if($user->save()){
@@ -176,6 +179,10 @@ class UsuarioController extends \yii\web\Controller
             ];
         }
         return $response;
+    }
+    public function actionGetUsers(){
+        $users = Usuario::find()->all();
+        return $users;
     }
  
 }

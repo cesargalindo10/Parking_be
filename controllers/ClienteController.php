@@ -32,11 +32,88 @@ class ClienteController extends \yii\web\Controller
         Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
         return parent::beforeAction($action);
     }
+    public function actionCreateClient(){
+        $params = Yii::$app->getRequest()->getBodyParams();
+        $user = new Cliente();
+        $user->password_hash = Yii::$app->getSecurity()->generatePasswordHash($params["password"]);
+        $user->access_token = Yii::$app->security->generateRandomString();
+        $user->load($params, "");
+        try{
+            if($user->save()){
+                Yii::$app->getResponse()->getStatusCode(201);
+                $response = [
+                    'success'=>true,
+                    'message'=> 'Cliente se creo con Exito',
+                    'data'=>$user
+                ];
+            }else{
+                Yii::$app->getResponse()->getStatusCode(222,'La validacion de datos a fallado');
+                $response=[
+                    'success'=>false,
+                    'message'=>'fallo al crear cliente',
+                    'data'=>$user->errors
+                ];
+            }
+        }catch(Exception $e){
+
+            Yii::$app->getResponse()->getStatusCode(500);
+            $response = [
+                'success'=>false,
+                'message'=>'ocurrio un error al crear cliente',
+                'data'=>$e->getMessage()
+            ];
+        }
+        return $response;
+        
+
+    }
+    public function actionUpdateCustomer($id)
+    {
+        $params = Yii::$app->getRequest()->getBodyParams();
+        $customer = Cliente::findOne($id);
+        if ($customer) {
+            $customer->load($params, '');
+            try{
+                if ($customer->save()) {
+                    $response = [
+                        'success' => true,
+                        'message' => 'se actualizo el usuario de manera correcta',
+                        'data' => $customer
+                    ];
+                } else {
+                    Yii::$app->getResponse()->setStatusCode(422, 'La validacion de datos a fallado.');
+                    $response = [
+                        'success' => false,
+                        'message' => 'fallo al actualizar usuario',
+                        'data' => $customer->errors
+                    ];
+                }
+            }catch(Exception $e){
+                $response = [
+                    'success' => false,
+                    'message' => 'Error al actualizar',
+                    'data' => $e->getMessage()
+                ];
+            }
+            
+            
+        }else{
+            Yii::$app->getResponse()->getStatusCode(404);
+            $response = [
+                'success' => false,
+                'message' => 'user no encontrado',
+                
+            ];
+        }
+
+        return $response;
+    }
     public function actionDisableClient($id){
         $cliente = Cliente::findOne($id); 
         if($cliente){
-            try{
+            
                 $cliente->estado=!$cliente->estado;
+                try{
                 if($cliente->save()){
                     $response = [
                         'success' => true,
@@ -61,10 +138,17 @@ class ClienteController extends \yii\web\Controller
             }
             
             
+        }else{
+            $response = [
+                'success' => false,
+                'message' => 'Cliente no encontrado',
+                
+            ];
         }
         return $response;
 
     }
+
     public function actionIndex($pageSize = 5){
         $query = Cliente::find();
 
