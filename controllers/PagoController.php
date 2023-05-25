@@ -1,13 +1,10 @@
 <?php
 
 namespace app\controllers;
+use app\models\Pago;
 use Yii;
-use app\models\Tarifa;
-use yii\data\Pagination;
-
-class TarifaController extends \yii\web\Controller
+class PagoController extends \yii\web\Controller
 {
-   
    
     public function behaviors()
     {
@@ -23,45 +20,12 @@ class TarifaController extends \yii\web\Controller
 
             ]
         ];
-/*         $behaviors['authenticator'] = [         	
+        $behaviors['authenticator'] = [         	
             'class' => \yii\filters\auth\HttpBearerAuth::class,         	
             'except' => ['options']     	
-        ]; */
+        ];
         return $behaviors;
     }
-
-    public function actionIndex ($pageSize=5){
-        $query = Tarifa::find();
-
-        $pagination = new Pagination([
-            'defaultPageSize' => $pageSize,
-            'totalCount' => $query->count(),
-        ]);
-
-        $payments = $query
-            ->orderBy('id DESC')
-            ->offset($pagination->offset)
-            ->limit($pagination->limit)
-            ->all();
-
-        $currentPage = $pagination->getPage() + 1;
-        $totalPages = $pagination->getPageCount();
-        $response = [
-            'success' => true,
-            'message' => 'lista de pagos',
-            'pageInfo' => [
-                'next' => $currentPage == $totalPages ? null  : $currentPage + 1,
-                'previus' => $currentPage == 1 ? null : $currentPage - 1,
-                'count' => count($payments),
-                'page' => $currentPage,
-                'start' => $pagination->getOffset(),
-                'totalPages' => $totalPages,
-            ],
-            'payments' => $payments
-        ];
-        return $response;
-    }
-
 
     public function beforeAction($action)
     {
@@ -78,7 +42,7 @@ class TarifaController extends \yii\web\Controller
     public function actionCreate (){
         $params = Yii::$app->getRequest()->getBodyParams();
 
-        $pay = new Tarifa();
+        $pay = new Pago();
         $pay -> load($params, '');
         if($pay -> save()){
             $response = [
@@ -90,7 +54,7 @@ class TarifaController extends \yii\web\Controller
             $response = [
                 'success' => false,
                 'message' => 'Existe erros en los parametros.',
-                'pay' => $pay->errors
+                'pay' => $pay
             ];
         }     
 
@@ -100,7 +64,7 @@ class TarifaController extends \yii\web\Controller
     public function actionUpdate ($id){
         $params = Yii::$app->getRequest()->getBodyParams();
 
-        $pay = Tarifa::findOne($id);
+        $pay = Pago::findOne($id);
         $pay -> load($params, '');
         if($pay -> save()){
             $response = [
@@ -112,14 +76,14 @@ class TarifaController extends \yii\web\Controller
             $response = [
                 'success' => false,
                 'message' => 'Existe erros en los parametros.',
-                'pay' => $pay
+                'errors' => $pay->errors
             ];
         }     
         return $response;
     }
 
     public function actionDisablePay($idPay){
-        $pay = Tarifa::findOne($idPay);   
+        $pay = Pago::findOne($idPay);   
         if($pay){
             $pay -> estado = false;
             if($pay -> save()){
@@ -132,34 +96,16 @@ class TarifaController extends \yii\web\Controller
                 $response = [
                     'success' => false,
                     'message' => 'Existe erros en los parametros.',
-                    'pay' => $pay->errors
+                    'pay' => $pay
                 ];
             } 
         }else{
             $response = [
                 'success' => false,
-                'message' => 'No se encontro el Tarifa.',
+                'message' => 'No se encontro el Pago.',
                 'pay' => $pay
             ];
         }
-        return $response;
     }
 
-    public function actionGetTarifaAll(){
-        $tarifas = Tarifa::find()->all();
-        if($tarifas){
-            $response = [
-                'success' => true,
-                'message' => 'Lista de tarifas',
-                'tarifas' => $tarifas
-            ];
-        }else{
-            $response = [
-                'success' => false,
-                'message' => 'No existen tarifas',
-                'tarifas' => []
-            ];
-        }
-        return $response;
-    }
 }
