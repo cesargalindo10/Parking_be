@@ -34,6 +34,7 @@ class InformacionController extends \yii\web\Controller
                     'atencion' => $information -> atencion,
                     'foto' => $information -> foto,
                     'convocatoria' => $information -> convocatoria,
+                    'qr' => $information -> qr,
                 ],
                 'dates' => [
                     'fecha_pub_conv' => $information -> fecha_pub_conv,
