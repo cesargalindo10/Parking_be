@@ -2,6 +2,7 @@
 
 namespace app\controllers;
 
+<<<<<<< HEAD
 use app\models\Parqueo;
 use Exception;
 use Yii;
@@ -66,6 +67,10 @@ class ParqueoController extends \yii\web\Controller
         
 
     }
+=======
+class ParqueoController extends \yii\web\Controller
+{
+>>>>>>> origin/elmer
     public function actionIndex()
     {
         return $this->render('index');
