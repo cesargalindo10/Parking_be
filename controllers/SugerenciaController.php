@@ -2,11 +2,12 @@
 
 namespace app\controllers;
 
+use app\models\Cliente;
 use app\models\Sugerencia;
 use Yii;
 use yii\data\Pagination;
 
-class SegerenciaController extends \yii\web\Controller
+class SugerenciaController extends \yii\web\Controller
 {
     public function behaviors(){
         $behaviors = parent::behaviors();
@@ -30,7 +31,9 @@ class SegerenciaController extends \yii\web\Controller
     }
 
     public function actionIndex ($pageSize=5){
-        $query = Sugerencia::find();
+        $query = Sugerencia::find()
+                            ->select(['sugerencia.*', 'cliente.nombre_completo', 'cliente.email', 'cliente.placa'])
+                            ->innerJoin('cliente', 'cliente.id = sugerencia.cliente_id');
 
         $pagination = new Pagination([
             'defaultPageSize' => $pageSize,
@@ -40,7 +43,8 @@ class SegerenciaController extends \yii\web\Controller
         $claims = $query
                         ->orderBy('id DESC')
                         ->offset($pagination->offset)
-                        ->limit($pagination->limit)        
+                        ->limit($pagination->limit)
+                        ->asArray()        
                         ->all();
         
         $currentPage = $pagination->getPage() + 1;
@@ -59,6 +63,35 @@ class SegerenciaController extends \yii\web\Controller
             'claims' => $claims
         ];
         return $response;
+    }
 
+    public function actionCreateClaim ($idCustomer){
+        $customer = Cliente::findOne($idCustomer);
+        $params = Yii::$app->getRequest()->getBodyParams();
+        if($customer){
+            $claim = new Sugerencia();
+            $claim -> load($params, '');
+            if($claim -> save()){
+                $response = [
+                    'success' => true,
+                    'message' => 'Sugerencia enviada con exito.',
+                    'claim' => $claim
+                ];
+            }else{
+                 $response = [
+                    'success' => false,
+                    'message' => 'Existe errores en los parametros.',
+                    'claim' => $claim -> errors
+                ];
+            }
+        }else{
+             $response = [
+                    'success' => false,
+                    'message' => 'No existe el cliente.',
+                    'claim' => []
+                ];
+        }
+
+        return $response;
     }
 }
