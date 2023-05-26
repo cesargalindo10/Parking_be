@@ -10,3 +10,6 @@ instalar postgres
 crear una base de datos llamado "parking
 #jejecutar en siguiente comando 
 psql -U postgres -W -h localhost parking < parking_v4.sql
+
+Gestor de base de datos
+DBeaver
