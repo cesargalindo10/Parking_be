@@ -11,6 +11,7 @@ use Yii;
  * @property string $nombre
  * @property int $costo
  * @property bool $estado
+ * @property bool|null $couta
  *
  * @property Reserva[] $reservas
  */
@@ -33,7 +34,7 @@ class Tarifa extends \yii\db\ActiveRecord
             [['nombre', 'costo'], 'required'],
             [['costo'], 'default', 'value' => null],
             [['costo'], 'integer'],
-            [['estado'], 'boolean'],
+            [['estado', 'couta'], 'boolean'],
             [['nombre'], 'string', 'max' => 10],
         ];
     }
@@ -48,6 +49,7 @@ class Tarifa extends \yii\db\ActiveRecord
             'nombre' => 'Nombre',
             'costo' => 'Costo',
             'estado' => 'Estado',
+            'couta' => 'Couta',
         ];
     }
 

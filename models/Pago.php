@@ -8,8 +8,8 @@ use Yii;
  * This is the model class for table "pago".
  *
  * @property int $id
- * @property string $fecha
- * @property int $nro_cuotas
+ * @property string|null $fecha
+ * @property int $nro_cuotas_pagadas
  * @property int $reserva_id
  *
  * @property Reserva $reserva
@@ -30,10 +30,10 @@ class Pago extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['fecha', 'nro_cuotas', 'reserva_id'], 'required'],
             [['fecha'], 'safe'],
-            [['nro_cuotas', 'reserva_id'], 'default', 'value' => null],
-            [['nro_cuotas', 'reserva_id'], 'integer'],
+            [['nro_cuotas_pagadas', 'reserva_id'], 'required'],
+            [['nro_cuotas_pagadas', 'reserva_id'], 'default', 'value' => null],
+            [['nro_cuotas_pagadas', 'reserva_id'], 'integer'],
             [['reserva_id'], 'exist', 'skipOnError' => true, 'targetClass' => Reserva::class, 'targetAttribute' => ['reserva_id' => 'id']],
         ];
     }
@@ -46,7 +46,7 @@ class Pago extends \yii\db\ActiveRecord
         return [
             'id' => 'ID',
             'fecha' => 'Fecha',
-            'nro_cuotas' => 'Nro Cuotas',
+            'nro_cuotas_pagadas' => 'Nro Cuotas Pagadas',
             'reserva_id' => 'Reserva ID',
         ];
     }

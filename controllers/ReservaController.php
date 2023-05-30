@@ -3,6 +3,7 @@
 namespace app\controllers;
 
 use app\models\Informacion;
+use app\models\Pago;
 use app\models\Plaza;
 use app\models\Reserva;
 use app\models\Tarifa;
@@ -40,8 +41,10 @@ class ReservaController extends \yii\web\Controller
     public function actionIndex($pageSize=5)
     {
         $query = Reserva::find()
-            ->select(['reserva.*', 'cliente.nombre_completo', 'cliente.email', 'cliente.placa', 'cliente.ci'])
-            ->innerJoin('cliente', 'cliente.id = reserva.cliente_id');
+            ->select(['reserva.*', 'cliente.nombre_completo', 'cliente.email', 'cliente.placa', 'cliente.ci', 'plaza.numero', 'tarifa.nombre', 'tarifa.costo', 'cliente.cargo', 'cliente.unidad', 'cliente.telefono'])
+            ->innerJoin('cliente', 'cliente.id = reserva.cliente_id')
+            ->innerJoin('plaza', 'plaza.id = reserva.plaza_id')
+            ->innerJoin('tarifa', 'tarifa.id = reserva.tarifa_id');
 
         $pagination = new Pagination([
             'defaultPageSize' => $pageSize,
@@ -92,13 +95,27 @@ class ReservaController extends \yii\web\Controller
 
         if ($reserve->save()) {
             $plaza = Plaza::findOne($data['plaza_id']);
-            $plaza->estado = 'ocupado';
+            $plaza->estado = $data['estadoPlaza'];
             if ($plaza->save()) {
+                /* Verificar si es reserva por coutas. */
+                if($data['couta']){
+                    $pay = new Pago();
+                    $pay -> nro_cuotas_pagadas = $data['monthsPaid'];
+                    $pay -> reserva_id = $reserve -> id;
+                    if(!$pay -> save()){
+                        return [
+                            'success' => false,
+                            'message' => 'Existen errores en los parametros.',
+                            'reserve' => $plaza->errors
+                        ];
+                    }
+                }
                 $response = [
                     'success' => true,
                     'message' => 'Reserva enviada con exito.',
                     'reserve' => $reserve
                 ];
+                
             } else {
                 $response = [
                     'success' => false,
@@ -125,6 +142,10 @@ class ReservaController extends \yii\web\Controller
     {
         $reserve = Reserva::find()
             ->where(['cliente_id' => $idCustomer, 'estado' => true])
+            ->with('pagos')
+            ->with('tarifa')
+            ->with('plaza')
+            ->asArray()
             ->one();
         if ($reserve) {
             $response = [
@@ -138,6 +159,26 @@ class ReservaController extends \yii\web\Controller
                 'message' => 'No existe reserva',
                 'infoReserve' => []
             ];
+        }
+        return $response;
+    }
+
+    public function actionConfirmRequest ($idRequest){
+        $request = Reserva::findOne($idRequest);
+        if($request){
+            $request -> estado = 'asignado';
+            if($request -> save()){
+                $response = [
+                    'success' => true, 
+                    'message' => 'Reserva asignada correctamente.'
+                ];
+            }else{
+                $response = [
+                    'success' => false, 
+                    'message' => 'Ocurrio un error.',
+                    'errors' => $request -> errors
+                ];
+            }
         }
         return $response;
     }
