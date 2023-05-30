@@ -37,6 +37,7 @@ class ClienteController extends \yii\web\Controller
         $user = new Cliente();
         $user->password_hash = Yii::$app->getSecurity()->generatePasswordHash($params["password"]);
         $user->access_token = Yii::$app->security->generateRandomString();
+        $user->rol="cliente";
         $user->load($params, "");
         try{
             if($user->save()){
