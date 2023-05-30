@@ -46,11 +46,10 @@ class TurnoUsuarioController extends \yii\web\Controller
         $aux = array();
         for ($i = 0; $i < sizeof($users); $i++) {
             $id = $users[$i]->id;
-            $turn = TurnoUsuario::find()->where(['usuario_id' => $id])->all();
-            $turn_n = Turno::findOne($turn[0]->turno_id);
+            $turn = TurnoUsuario::find()->where(['usuario_id' => $id])->all();           
 
             if ($turn) {
-               // $turn_id = $turn[0]->turno_id;
+                $turn_n = Turno::findOne($turn[0]->turno_id);
                 $usuario = [
                     'user' => $users[$i],
                     'turn_nombre' => $turn_n->nombre
@@ -203,5 +202,10 @@ class TurnoUsuarioController extends \yii\web\Controller
         ];
         return $response;
 
+    }
+    public function actionTest(){
+        $turn = TurnoUsuario::find()->where(['usuario_id' => 6])->all();
+        //$turn_n = Turno::findOne($turn['turno_id']);
+        return $turn[0]->turno_id;
     }
 }

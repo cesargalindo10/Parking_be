@@ -3,6 +3,7 @@
 namespace app\controllers;
 
 use app\models\Turno;
+use Exception;
 use Yii;
 
 class TurnoController extends \yii\web\Controller
@@ -13,7 +14,7 @@ class TurnoController extends \yii\web\Controller
         $behaviors['verbs'] = [
             'class' => \yii\filters\VerbFilter::class,
             'actions' => [
-                'create-user' => ['POST'],
+                'create-turn' => ['POST'],
                 'update' => ['POST']
 
             ]
@@ -35,6 +36,38 @@ class TurnoController extends \yii\web\Controller
     {
         $turns = Turno::find()->all();
         return $turns;
+    }
+    public function actionCreateTurn()
+    {
+        $params = Yii::$app->getRequest()->getBodyParams();
+        $turn = new Turno();
+        $turn->load($params, "");
+        try{
+            if($turn->save()){
+                Yii::$app->getResponse()->getStatusCode(201);
+                $response = [
+                    'success'=>true,
+                    'message'=> 'Turno se creo con Exito',
+                    'data'=>$turn
+                ];
+            }else{
+                Yii::$app->getResponse()->getStatusCode(222,'La validacion de datos a fallado');
+                $response=[
+                    'success'=>false,
+                    'message'=>'fallo al crear turno',
+                    'data'=>$turn->errors
+                ];
+            }
+        }catch(Exception $e){
+
+            Yii::$app->getResponse()->getStatusCode(500);
+            $response = [
+                'success'=>false,
+                'message'=>'ocurrio un error al crear turno',
+                'data'=>$e->getMessage()
+            ];
+        }
+        return $response;
     }
     public function actionIndex()
     {

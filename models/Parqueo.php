@@ -12,6 +12,9 @@ use Yii;
  * @property int $nro_plazas
  * @property int|null $plazas_disponibles
  * @property int|null $plazas_ocupadas
+ * @property int $nro_filas
+ * @property int $nro_columnas
+ * @property string|null $descripcion
  *
  * @property Plaza[] $plazas
  */
@@ -31,10 +34,10 @@ class Parqueo extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['nombre', 'nro_plazas'], 'required'],
-            [['nro_plazas', 'plazas_disponibles', 'plazas_ocupadas'], 'default', 'value' => null],
-            [['nro_plazas', 'plazas_disponibles', 'plazas_ocupadas'], 'integer'],
-            [['nombre'], 'string', 'max' => 80],
+            [['nombre', 'nro_plazas', 'nro_filas', 'nro_columnas'], 'required'],
+            [['nro_plazas', 'plazas_disponibles', 'plazas_ocupadas', 'nro_filas', 'nro_columnas'], 'default', 'value' => null],
+            [['nro_plazas', 'plazas_disponibles', 'plazas_ocupadas', 'nro_filas', 'nro_columnas'], 'integer'],
+            [['nombre', 'descripcion'], 'string', 'max' => 80],
         ];
     }
 
@@ -49,6 +52,9 @@ class Parqueo extends \yii\db\ActiveRecord
             'nro_plazas' => 'Nro Plazas',
             'plazas_disponibles' => 'Plazas Disponibles',
             'plazas_ocupadas' => 'Plazas Ocupadas',
+            'nro_filas' => 'Nro Filas',
+            'nro_columnas' => 'Nro Columnas',
+            'descripcion' => 'Descripcion',
         ];
     }
 

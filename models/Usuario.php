@@ -13,6 +13,7 @@ use Yii;
  * @property string $rol
  * @property string $password_hash
  * @property string $access_token
+ * @property bool $estado
  *
  * @property TurnoUsuario[] $turnoUsuarios
  */
@@ -34,6 +35,7 @@ class Usuario extends \yii\db\ActiveRecord
         return [
             [['nombre', 'email', 'rol', 'password_hash', 'access_token'], 'required'],
             [['password_hash', 'access_token'], 'string'],
+            [['estado'], 'boolean'],
             [['nombre', 'email'], 'string', 'max' => 50],
             [['rol'], 'string', 'max' => 20],
         ];
@@ -51,6 +53,7 @@ class Usuario extends \yii\db\ActiveRecord
             'rol' => 'Rol',
             'password_hash' => 'Password Hash',
             'access_token' => 'Access Token',
+            'estado' => 'Estado',
         ];
     }
 

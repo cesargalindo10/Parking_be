@@ -3,6 +3,7 @@
 namespace app\controllers;
 
 use app\models\Plaza;
+use Exception;
 use Yii;;
 class PlazaController extends \yii\web\Controller
 {
@@ -62,6 +63,95 @@ class PlazaController extends \yii\web\Controller
                 'placeInformation' => []
             ];
         }
+        return $response;
+    }
+    public function actionGetPlaza(){
+        $plazas = Plaza::find()->orderBy("id ASC")->all();
+        if($plazas)
+        {
+            $response = [
+                "success"=>true,
+                "plazas"=>$plazas
+            ];
+        }else{
+            $response = [
+                "success"=>false,
+                "message"=>"no hay plazas"
+            ];
+        }
+        return $response;
+    }
+    public function actionCreatePlaza()
+    {
+        $params = Yii::$app->getRequest()->getBodyParams();
+        $plaza = new Plaza();
+        $plaza->load($params, "");
+        try{
+            if($plaza->save()){
+                Yii::$app->getResponse()->getStatusCode(201);
+                $response = [
+                    'success'=>true,
+                    'message'=> 'plaza se creo con Exito',
+                    'data'=>$plaza
+                ];
+            }else{
+                Yii::$app->getResponse()->getStatusCode(222,'La validacion de datos a fallado');
+                $response=[
+                    'success'=>false,
+                    'message'=>'fallo al crear plaza',
+                    'data'=>$plaza->errors
+                ];
+            }
+        }catch(Exception $e){
+
+            Yii::$app->getResponse()->getStatusCode(500);
+            $response = [
+                'success'=>false,
+                'message'=>'ocurrio un error al crear turno',
+                'data'=>$e->getMessage()
+            ];
+        }
+        return $response;
+    }
+    public function actionUpdate($id)
+    {
+        $params = Yii::$app->getRequest()->getBodyParams();
+        $plaza = Plaza::findOne($id);
+        if ($plaza) {
+            $plaza->load($params, '');
+            try{
+                if ($plaza->save()) {
+                    $response = [
+                        'success' => true,
+                        'message' => 'se actualizo la plaza de manera correcta',
+                        'data' => $plaza
+                    ];
+                } else {
+                    Yii::$app->getResponse()->setStatusCode(422, 'La validacion de datos a fallado.');
+                    $response = [
+                        'success' => false,
+                        'message' => 'fallo al actualizar plaza',
+                        'data' => $plaza->errors
+                    ];
+                }
+            }catch(Exception $e){
+                $response = [
+                    'success' => false,
+                    'message' => 'Error al actualizar',
+                    'data' => $e->getMessage()
+                ];
+            }
+            
+            
+        }else{
+            Yii::$app->getResponse()->getStatusCode(404);
+            $response = [
+                'success' => false,
+                'message' => 'user no encontrado',
+                
+            ];
+        }
+
         return $response;
     }
 }

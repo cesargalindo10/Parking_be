@@ -15,6 +15,9 @@ use Yii;
  * @property bool|null $estado
  * @property string $password_hash
  * @property string $access_token
+ * @property int $telefono
+ * @property string $cargo
+ * @property string $unidad
  *
  * @property Reserva[] $reservas
  * @property Sugerencia[] $sugerencias
@@ -35,14 +38,15 @@ class Cliente extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['nombre_completo', 'ci', 'email', 'placa', 'password_hash', 'access_token'], 'required'],
-            [['ci'], 'default', 'value' => null],
-            [['ci'], 'integer'],
+            [['nombre_completo', 'ci', 'email', 'placa', 'password_hash', 'access_token', 'telefono', 'cargo', 'unidad'], 'required'],
+            [['ci', 'telefono'], 'default', 'value' => null],
+            [['ci', 'telefono'], 'integer'],
             [['estado'], 'boolean'],
             [['password_hash', 'access_token'], 'string'],
-            [['nombre_completo'], 'string', 'max' => 50],
+            [['nombre_completo', 'cargo'], 'string', 'max' => 50],
             [['email'], 'string', 'max' => 80],
             [['placa'], 'string', 'max' => 10],
+            [['unidad'], 'string', 'max' => 20],
         ];
     }
 
@@ -60,6 +64,9 @@ class Cliente extends \yii\db\ActiveRecord
             'estado' => 'Estado',
             'password_hash' => 'Password Hash',
             'access_token' => 'Access Token',
+            'telefono' => 'Telefono',
+            'cargo' => 'Cargo',
+            'unidad' => 'Unidad',
         ];
     }
 
