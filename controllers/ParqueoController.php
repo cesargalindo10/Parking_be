@@ -240,4 +240,22 @@ class ParqueoController extends \yii\web\Controller
      $params = Yii::$app->getRequest()->getBodyParams();
      return $params['nombre'];
     }
+
+    public function actionGetInfoParking(){
+        $parking = Parqueo::find()->one();
+        if($parking){
+            $response = [
+                'success' => true,
+                'message' => 'Informacion de parqueo',
+                'parking' => $parking
+            ];
+        }else{
+            $response = [
+                'success' => false,
+                'message' => 'No existe parqueo',
+                'parking' => []
+            ];
+        }
+        return $response;
+    }
 }

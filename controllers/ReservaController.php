@@ -7,6 +7,8 @@ use app\models\Pago;
 use app\models\Plaza;
 use app\models\Reserva;
 use app\models\Tarifa;
+use DateTime;
+use Symfony\Polyfill\Intl\Idn\Info;
 use Yii;
 use yii\data\Pagination;
 use yii\helpers\Json;
@@ -38,13 +40,13 @@ class ReservaController extends \yii\web\Controller
         return parent::beforeAction($action);
     }
 
-    public function actionIndex($pageSize=5)
+    public function actionIndex($pageSize = 5)
     {
         $query = Reserva::find()
-            ->select(['reserva.*', 'cliente.nombre_completo', 'cliente.email', 'cliente.placa', 'cliente.ci', 'plaza.numero', 'tarifa.nombre', 'tarifa.costo', 'cliente.cargo', 'cliente.unidad', 'cliente.telefono'])
-            ->innerJoin('cliente', 'cliente.id = reserva.cliente_id')
-            ->innerJoin('plaza', 'plaza.id = reserva.plaza_id')
-            ->innerJoin('tarifa', 'tarifa.id = reserva.tarifa_id');
+            ->with('cliente')
+            ->with('pagos')
+            ->with('tarifa')
+            ->with('plaza');
 
         $pagination = new Pagination([
             'defaultPageSize' => $pageSize,
@@ -83,39 +85,43 @@ class ReservaController extends \yii\web\Controller
         $reserve = new Reserva();
         $data = Json::decode(Yii::$app->request->post('data'));
         $reserve->load($data, '');
-        $reserve->fecha_inicio = $information->fecha_inicio_reserva;
-        $reserve->fecha_fin = $this->dateEnd($reserve['tarifa_id']);
-        $imgVoucher = UploadedFile::getInstanceByName('img');
-
-        if ($imgVoucher) {
-            $fileName = uniqid() . '.' . $imgVoucher->getExtension();
-            $imgVoucher->saveAs(Yii::getAlias('@app/web/upload/' . $fileName));
-            $reserve->comprobante = $fileName;
+        $fechaActual = new DateTime();
+        if ($fechaActual < $information->fecha_inicio_reserva) {
+            $reserve->fecha_inicio = $information->fecha_inicio_reserva;
         }
+        $reserve->fecha_fin = $data['fecha_fin'];
 
         if ($reserve->save()) {
             $plaza = Plaza::findOne($data['plaza_id']);
             $plaza->estado = $data['estadoPlaza'];
             if ($plaza->save()) {
                 /* Verificar si es reserva por coutas. */
-                if($data['couta']){
-                    $pay = new Pago();
-                    $pay -> nro_cuotas_pagadas = $data['monthsPaid'];
-                    $pay -> reserva_id = $reserve -> id;
-                    if(!$pay -> save()){
-                        return [
-                            'success' => false,
-                            'message' => 'Existen errores en los parametros.',
-                            'reserve' => $plaza->errors
-                        ];
-                    }
+                $pay = new Pago();
+                $pay->nro_cuotas_pagadas = $data['monthsPaid']; 
+                $pay->reserva_id = $reserve->id;
+                $pay->total = $data['total'];
+                $pay->tipo_pago = $data['tipo_pago'];
+                $pay->estado = false;
+                $imgVoucher = UploadedFile::getInstanceByName('img');
+
+                if ($imgVoucher) {
+                    $fileName = uniqid() . '.' . $imgVoucher->getExtension();
+                    $imgVoucher->saveAs(Yii::getAlias('@app/web/upload/' . $fileName));
+                    $pay->comprobante = $fileName;
+                }
+
+                if (!$pay->save()) {
+                    return [
+                        'success' => false,
+                        'message' => 'Existen errores en los parametros.',
+                        'reserve' => $plaza->errors
+                    ];
                 }
                 $response = [
                     'success' => true,
                     'message' => 'Reserva enviada con exito.',
                     'reserve' => $reserve
                 ];
-                
             } else {
                 $response = [
                     'success' => false,
@@ -133,15 +139,10 @@ class ReservaController extends \yii\web\Controller
         return $response;
     }
 
-    private function dateEnd($idTarifa)
-    {/* calcular  */
-        return '2023-12-31';
-    }
-
     public function actionGetCustomerReserve($idCustomer)
     {
         $reserve = Reserva::find()
-            ->where(['cliente_id' => $idCustomer, 'estado' => true])
+            ->where(['cliente_id' => $idCustomer])
             ->with('pagos')
             ->with('tarifa')
             ->with('plaza')
@@ -163,22 +164,74 @@ class ReservaController extends \yii\web\Controller
         return $response;
     }
 
-    public function actionConfirmRequest ($idRequest){
+    public function actionConfirmRequest($idRequest)
+    {
         $request = Reserva::findOne($idRequest);
-        if($request){
-            $request -> estado = 'asignado';
-            if($request -> save()){
+        if ($request) {
+            $request->estado = 'aprobado';
+            $plaza = Plaza::findOne($request->plaza_id);
+            $plaza->estado = 'asignado';
+            if ($request->save() && $plaza->save()) {
                 $response = [
-                    'success' => true, 
+                    'success' => true,
                     'message' => 'Reserva asignada correctamente.'
                 ];
-            }else{
+            } else {
                 $response = [
-                    'success' => false, 
+                    'success' => false,
                     'message' => 'Ocurrio un error.',
-                    'errors' => $request -> errors
+                    'errors' => $request->errors
                 ];
             }
+        }
+        return $response;
+    }
+
+    public function actionCancelRequest($idRequest)
+    {
+        $request = Reserva::findOne($idRequest);
+        if ($request) {
+            $request->estado = 'cancelado';
+            $plaza = Plaza::findOne($request->plaza_id);
+            $plaza->estado = 'disponible';
+            if ($request->save() && $plaza->save()) {
+                $response = [
+                    'success' => true,
+                    'message' => 'Reserva cancelada correctamente.'
+                ];
+            } else {
+                $response = [
+                    'success' => false,
+                    'message' => 'Ocurrio un error.',
+                    'errors' => $request->errors
+                ];
+            }
+        }
+        return $response;
+    }
+
+    public function actionGetInfoReserveByPlaza($idPlaza)
+    {
+        $reserve = Reserva::find()
+            ->select(['reserva.*', 'cliente.nombre_completo', 'cliente.email', 'cliente.placa', 'cliente.ci', 'plaza.numero', 'tarifa.nombre', 'tarifa.costo', 'cliente.cargo', 'cliente.unidad', 'cliente.telefono'])
+            ->innerJoin('cliente', 'cliente.id = reserva.cliente_id')
+            ->innerJoin('plaza', 'plaza.id = reserva.plaza_id')
+            ->innerJoin('tarifa', 'tarifa.id = reserva.tarifa_id')
+            ->where(['plaza_id' => $idPlaza])
+            ->asArray()
+            ->one();
+        if ($reserve) {
+            $response = [
+                'success' => true,
+                'message' => 'Informacion de la reserva',
+                'infoReserve' => $reserve
+            ];
+        } else {
+            $response = [
+                'success' => false,
+                'message' => 'No tiene reserva',
+                'infoReserve' => []
+            ];
         }
         return $response;
     }

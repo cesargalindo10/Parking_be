@@ -40,6 +40,7 @@ class InformacionController extends \yii\web\Controller
                     'fecha_pub_conv' => $information -> fecha_pub_conv,
                     'fecha_inicio_reserva' => $information -> fecha_inicio_reserva,
                     'fecha_limite_reserva' => $information -> fecha_limite_reserva,
+                    'fecha_fin_reserva' => $information -> fecha_fin_reserva,
                 ]
             ];
         }else{

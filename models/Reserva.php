@@ -8,15 +8,14 @@ use Yii;
  * This is the model class for table "reserva".
  *
  * @property int $id
- * @property bool $estado
- * @property string $comprobante
+ * @property string $estado
  * @property string $fecha_inicio
  * @property string $fecha_fin
  * @property int $cliente_id
  * @property int $plaza_id
  * @property int $tarifa_id
- * @property string $tipo_pago
  * @property int|null $cantidad
+ * @property bool|null $couta
  *
  * @property Cliente $cliente
  * @property Pago[] $pagos
@@ -39,13 +38,12 @@ class Reserva extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['estado'], 'boolean'],
-            [['comprobante', 'fecha_inicio', 'fecha_fin', 'cliente_id', 'plaza_id', 'tarifa_id', 'tipo_pago'], 'required'],
             [['fecha_inicio', 'fecha_fin'], 'safe'],
+            [['fecha_fin', 'cliente_id', 'plaza_id', 'tarifa_id'], 'required'],
             [['cliente_id', 'plaza_id', 'tarifa_id', 'cantidad'], 'default', 'value' => null],
             [['cliente_id', 'plaza_id', 'tarifa_id', 'cantidad'], 'integer'],
-            [['comprobante'], 'string', 'max' => 150],
-            [['tipo_pago'], 'string', 'max' => 20],
+            [['couta'], 'boolean'],
+            [['estado'], 'string', 'max' => 25],
             [['cliente_id'], 'exist', 'skipOnError' => true, 'targetClass' => Cliente::class, 'targetAttribute' => ['cliente_id' => 'id']],
             [['plaza_id'], 'exist', 'skipOnError' => true, 'targetClass' => Plaza::class, 'targetAttribute' => ['plaza_id' => 'id']],
             [['tarifa_id'], 'exist', 'skipOnError' => true, 'targetClass' => Tarifa::class, 'targetAttribute' => ['tarifa_id' => 'id']],
@@ -60,14 +58,13 @@ class Reserva extends \yii\db\ActiveRecord
         return [
             'id' => 'ID',
             'estado' => 'Estado',
-            'comprobante' => 'Comprobante',
             'fecha_inicio' => 'Fecha Inicio',
             'fecha_fin' => 'Fecha Fin',
             'cliente_id' => 'Cliente ID',
             'plaza_id' => 'Plaza ID',
             'tarifa_id' => 'Tarifa ID',
-            'tipo_pago' => 'Tipo Pago',
             'cantidad' => 'Cantidad',
+            'couta' => 'Couta',
         ];
     }
 

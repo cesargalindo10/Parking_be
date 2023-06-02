@@ -8,7 +8,7 @@ use Yii;
  * This is the model class for table "plaza".
  *
  * @property int $id
- * @property string|null $estado
+ * @property string $estado
  * @property string $numero
  * @property int $parqueo_id
  * @property bool|null $habilitado
@@ -32,7 +32,7 @@ class Plaza extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['numero', 'parqueo_id'], 'required'],
+            [['estado', 'numero', 'parqueo_id'], 'required'],
             [['parqueo_id'], 'default', 'value' => null],
             [['parqueo_id'], 'integer'],
             [['habilitado'], 'boolean'],
