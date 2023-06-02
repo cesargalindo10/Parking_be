@@ -17,7 +17,7 @@ use Yii;
  *
  * @property TurnoUsuario[] $turnoUsuarios
  */
-class Usuario extends \yii\db\ActiveRecord
+class Usuario extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
 {
     /**
      * {@inheritdoc}
@@ -41,6 +41,23 @@ class Usuario extends \yii\db\ActiveRecord
         ];
     }
 
+    public static function findIdentity($id)
+    {
+        //return isset(self::$users[$id]) ? new static(self::$users[$id]) : null;
+    }
+    public static function findIdentityByAccessToken($token, $type = null)	
+    {    	
+    $user = Usuario::findOne(['access_token' => $token]);     	
+    if ($user) {      
+    // Evita mostrar el token de usuario   	
+    $user->access_token = null; 
+    // Almacena el usuario en Yii::$app->user->identity  
+    return new static($user);     	
+    }     	
+    return null; // Almacena null en Yii::$app->user->identity
+        
+    }
+    
     /**
      * {@inheritdoc}
      */
@@ -69,5 +86,40 @@ class Usuario extends \yii\db\ActiveRecord
     public function getTurno(){
         return $this->hasMany(Turno::class,['id'=>'turno_id'])
         ->viaTable('turno_usuario', ['usuario_id' => 'id']);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getId()
+    {
+        return $this->id;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getAuthKey()
+    {
+        return $this->authKey;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function validateAuthKey($authKey)
+    {
+        return $this->authKey === $authKey;
+    }
+
+    /**
+     * Validates password
+     *
+     * @param string $password password to validate
+     * @return bool if password provided is valid for current user
+     */
+    public function validatePassword($password)
+    {
+        return $this->password === $password;
     }
 }

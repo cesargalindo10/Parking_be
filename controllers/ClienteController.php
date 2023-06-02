@@ -20,6 +20,11 @@ class ClienteController extends \yii\web\Controller
 
             ]
          ];
+        /* $behaviors['authenticator'] = [
+            'class' => \yii\filters\auth\HttpBearerAuth::class,
+            'except' => ['options', 'login','create-client']
+        ];*/
+
         return $behaviors;
     }
 
@@ -41,6 +46,9 @@ class ClienteController extends \yii\web\Controller
         $user->load($params, "");
         try{
             if($user->save()){
+                $auth = Yii::$app->authManager;
+                $role = $auth->getRole('cliente');
+                $auth -> assign($role, $user -> id);
                 Yii::$app->getResponse()->getStatusCode(201);
                 $response = [
                     'success'=>true,
