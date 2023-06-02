@@ -11,6 +11,10 @@ use Yii;
  * @property string|null $fecha
  * @property int $nro_cuotas_pagadas
  * @property int $reserva_id
+ * @property int $total
+ * @property string|null $comprobante
+ * @property bool $estado
+ * @property string $tipo_pago
  *
  * @property Reserva $reserva
  */
@@ -31,9 +35,12 @@ class Pago extends \yii\db\ActiveRecord
     {
         return [
             [['fecha'], 'safe'],
-            [['nro_cuotas_pagadas', 'reserva_id'], 'required'],
-            [['nro_cuotas_pagadas', 'reserva_id'], 'default', 'value' => null],
-            [['nro_cuotas_pagadas', 'reserva_id'], 'integer'],
+            [['nro_cuotas_pagadas', 'reserva_id', 'total', 'estado', 'tipo_pago'], 'required'],
+            [['nro_cuotas_pagadas', 'reserva_id', 'total'], 'default', 'value' => null],
+            [['nro_cuotas_pagadas', 'reserva_id', 'total'], 'integer'],
+            [['estado'], 'boolean'],
+            [['comprobante'], 'string', 'max' => 50],
+            [['tipo_pago'], 'string', 'max' => 20],
             [['reserva_id'], 'exist', 'skipOnError' => true, 'targetClass' => Reserva::class, 'targetAttribute' => ['reserva_id' => 'id']],
         ];
     }
@@ -48,6 +55,10 @@ class Pago extends \yii\db\ActiveRecord
             'fecha' => 'Fecha',
             'nro_cuotas_pagadas' => 'Nro Cuotas Pagadas',
             'reserva_id' => 'Reserva ID',
+            'total' => 'Total',
+            'comprobante' => 'Comprobante',
+            'estado' => 'Estado',
+            'tipo_pago' => 'Tipo Pago',
         ];
     }
 

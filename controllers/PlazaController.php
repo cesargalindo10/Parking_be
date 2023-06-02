@@ -154,4 +154,24 @@ class PlazaController extends \yii\web\Controller
 
         return $response;
     }
+    public function actionGetPlaces(){
+        $places = Plaza::find() 
+                        ->orderBy(['id' => SORT_ASC])
+                        -> all();
+        if($places){
+            $response = [
+                'success' => true,
+                'message' => 'Lista de plazas',
+                'places' => $places
+            ];
+        }else{
+            $response = [
+                'success' => false,
+                'message' => 'No existen plazas habilitadas',
+                'places' => []
+            ];
+        }
+        return $response;
+    }
+
 }
