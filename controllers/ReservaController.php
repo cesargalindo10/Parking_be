@@ -142,7 +142,7 @@ class ReservaController extends \yii\web\Controller
     public function actionGetCustomerReserve($idCustomer)
     {
         $reserve = Reserva::find()
-            ->where(['cliente_id' => $idCustomer])
+            ->where(['cliente_id' => $idCustomer, 'finalizado' => false])
             ->with('pagos')
             ->with('tarifa')
             ->with('plaza')
@@ -290,9 +290,5 @@ class ReservaController extends \yii\web\Controller
         }else{
             return false;
         }
-    }
-    public function actionTest(){
-        $date = intval( Date('m'));
-    return $date;
     }
 }

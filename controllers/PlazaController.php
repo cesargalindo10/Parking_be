@@ -3,6 +3,7 @@
 namespace app\controllers;
 
 use app\models\Plaza;
+use app\models\Reserva;
 use Exception;
 use Yii;;
 class PlazaController extends \yii\web\Controller
@@ -158,11 +159,36 @@ class PlazaController extends \yii\web\Controller
         $places = Plaza::find() 
                         ->orderBy(['id' => SORT_ASC])
                         -> all();
-        if($places){
+        $placesUpdated = [];
+        for ($i=0; $i < count($places); $i++) { 
+            $place = $places[$i];
+            $reserve = Reserva::find()->where(['plaza_id' => $place->id, 'finalizado' => false])->one();
+            date_default_timezone_set('America/La_Paz');
+            $dateCurrently = Date('Y-m-d H:i:s');
+            /* if( $reserve ){
+                return [
+                    'fin' => $reserve['fecha_fin'],
+                    'actual' => $dateCurrently
+                ];
+            } */
+            if($reserve && $dateCurrently > $reserve["fecha_fin"] ){
+                $place -> estado = 'disponible';
+                $reserve['finalizado'] = true;
+                if(!$place -> save() || !$reserve -> save()){
+                    return [
+                        'success' => false,
+                        'message' => 'Ocurrio un error'
+                    ];
+                }
+            }
+            $placesUpdated[] = $place;
+        }
+
+        if($placesUpdated){
             $response = [
                 'success' => true,
                 'message' => 'Lista de plazas',
-                'places' => $places
+                'places' => $placesUpdated
             ];
         }else{
             $response = [
