@@ -92,7 +92,7 @@ class PagoController extends \yii\web\Controller
             if($payment -> save() && $reserve -> save() && $plaza -> save()){
                 $response = [
                     'success' => true,
-                    'message' => 'Su pago se realizo exitosamente..',
+                    'message' => 'Se confirmo el pago.',
                     'reserve' => $payment 
                 ];
             }else{
@@ -117,4 +117,28 @@ class PagoController extends \yii\web\Controller
         
         return $totalPaid;
     }
+
+    public function actionGetPaymentsByDay(){
+        $params = Yii::$app->getRequest()->getBodyParams();
+        $fechaFinWhole = $params['fechaFin'] . ' ' . '23:59:00.000';
+        $payments = Pago::find()
+                    ->select(['sum(total) as total', 'Date(fecha) As fecha'])
+                    ->where(['between', 'fecha', $params['fechaInicio'], $fechaFinWhole])
+                    ->groupBy('Date(fecha)')
+                    ->all();
+        if($payments){
+            $response = [
+                'success' => true,
+                'message' => 'Reportes por dia',
+                'payments' => $payments
+            ];
+        }else{
+            $response = [
+                'success' => false,
+                'message' => 'No existen reportes',
+                'payments' => []
+            ];
+        }
+        return $response;
+    }   
 }
