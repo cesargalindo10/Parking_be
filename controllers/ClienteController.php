@@ -191,4 +191,21 @@ class ClienteController extends \yii\web\Controller
 
     }
 
+    public function actionGetCustomers(){
+        $customers = Cliente::find()->all();
+        if($customers){
+            $response = [
+                'success' => true,
+                'message' => 'Lista de clientes',
+                'customers' => $customers
+            ];
+        }else{
+            $response = [
+                'success' => false,
+                'message' => 'No existen clientes',
+                'data' => []
+            ];
+        }
+        return $response;
+    }
 }

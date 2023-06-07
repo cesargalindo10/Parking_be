@@ -146,7 +146,9 @@ class TarifaController extends \yii\web\Controller
     }
 
     public function actionGetTarifaAll(){
-        $tarifas = Tarifa::find()->all();
+        $tarifas = Tarifa::find()
+                            ->where(['estado' => true])
+                            ->all();
         if($tarifas){
             $response = [
                 'success' => true,

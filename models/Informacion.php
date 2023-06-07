@@ -14,7 +14,7 @@ use Yii;
  * @property string|null $fecha_inicio_reserva
  * @property string|null $fecha_limite_reserva
  * @property string|null $atencion
- * @property string $foto
+ * @property string|null $foto
  * @property string|null $mensaje_mora
  * @property string|null $fecha_fin_reserva
  */
@@ -34,7 +34,7 @@ class Informacion extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['qr', 'foto'], 'required'],
+            [['qr'], 'required'],
             [['fecha_pub_conv', 'fecha_inicio_reserva', 'fecha_limite_reserva', 'fecha_fin_reserva'], 'safe'],
             [['qr', 'convocatoria', 'foto'], 'string', 'max' => 50],
             [['atencion'], 'string', 'max' => 100],

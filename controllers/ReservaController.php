@@ -85,7 +85,7 @@ class ReservaController extends \yii\web\Controller
         $reserve = new Reserva();
         $data = Json::decode(Yii::$app->request->post('data'));
         $reserve->load($data, '');
-        $fechaActual = new DateTime();
+        $fechaActual = Date('Y-m-d');
         if ($fechaActual < $information->fecha_inicio_reserva) {
             $reserve->fecha_inicio = $information->fecha_inicio_reserva;
         }
@@ -234,5 +234,65 @@ class ReservaController extends \yii\web\Controller
             ];
         }
         return $response;
+    }
+
+    public function actionGetDebtorCustomers(){
+        $reserves = Reserva::find()
+                    ->with('cliente')    
+                    ->asArray()
+                    ->all();
+        $debtorCustomers = [];
+        for ($i=0; $i < count($reserves); $i++) { 
+            $reserve = $reserves[$i];
+            if($reserve['couta']){
+                $payments = Pago::find()->where(['reserva_id' => $reserve['id']])->all();
+                $nroCoutas = 0;
+                for ($j=0; $j < count($payments); $j++) { 
+                    $nroCoutas += $payments[$i] -> nro_cuotas_pagadas; 
+                }
+                if($this -> calculateMonth($nroCoutas) ){
+                    $debtorCustomers[] = $reserve;
+                }
+            }
+        }
+        if($debtorCustomers){
+            $response =  [
+                'success' => true,
+                'message' => 'Lista de clientes con mora',
+                'customers' => $debtorCustomers
+            ];
+        }else{
+            $response =  [
+                'success' => false,
+                'message' => 'No existen clientes con mora',
+                'customers' => []
+            ];
+        }
+        return $response;
+    }
+    public function calculateMonth ($nroCoutas){
+        $information = Informacion::find()->one();
+        $startMonth = mb_substr( $information -> fecha_inicio_reserva, 5, 2);
+        $startYear = mb_substr( $information -> fecha_inicio_reserva, 0, 4);
+        $plus = $startMonth + $nroCoutas;
+        if($plus > 12){
+            $newPlus = '0'. ($plus - 12);
+            $datePaid = intval($startYear)+1 .'-'.$newPlus. '-01';
+        } else{
+            if($plus < 10){
+                $plus = '0'.$plus;
+            }
+            $datePaid = $startYear . '-' . $plus . '-01';
+        }
+        $dateCurrently = Date('Y-m-d');
+        if($dateCurrently >  $datePaid ){
+            return true;
+        }else{
+            return false;
+        }
+    }
+    public function actionTest(){
+        $date = intval( Date('m'));
+    return $date;
     }
 }
