@@ -23,10 +23,10 @@ class UsuarioController extends \yii\web\Controller
 
             ]
          ];
-     /* $behaviors['authenticator'] = [
+      $behaviors['authenticator'] = [
             'class' => \yii\filters\auth\HttpBearerAuth::class,
-            'except' => ['options','login']
-        ];*/
+            'except' => ['options','login','create-client']
+        ];
         return $behaviors;
     }
 
@@ -216,7 +216,8 @@ class UsuarioController extends \yii\web\Controller
                         "message" => "Inicio de sesión exitoso",
                         "accessToken" => $user->access_token,
                         "rol"=>$role,
-                        "id"=>$user->id
+                        "id"=>$user->id,
+                        "nombre"=>$user->nombre
 
                     ];
                     return $response;
@@ -231,7 +232,8 @@ class UsuarioController extends \yii\web\Controller
                         "message" => "Inicio de sesión exitoso",
                         "accessToken" => $client->access_token,
                         "rol"=>$role,
-                        "id"=>$client->id
+                        "id"=>$client->id,
+                        "nombre"=>$client->nombre_completo
 
                     ];
                     return $response;

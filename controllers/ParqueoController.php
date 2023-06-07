@@ -201,7 +201,7 @@ class ParqueoController extends \yii\web\Controller
         //$plaza->load($params, "");
         for($i=0;$i<$n;$i++){
             $plaza = new Plaza();
-            $plaza->estado="disponible";
+            $plaza->estado="camino";
             $plaza->numero=$i."";
             $plaza->parqueo_id=1;
             $plaza->habilitado=false;
