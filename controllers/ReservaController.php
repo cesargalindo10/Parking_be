@@ -248,7 +248,7 @@ class ReservaController extends \yii\web\Controller
                 $payments = Pago::find()->where(['reserva_id' => $reserve['id']])->all();
                 $nroCoutas = 0;
                 for ($j=0; $j < count($payments); $j++) { 
-                    $nroCoutas += $payments[$i] -> nro_cuotas_pagadas; 
+                    $nroCoutas += $payments[$j] -> nro_cuotas_pagadas; 
                 }
                 if($this -> calculateMonth($nroCoutas) ){
                     $debtorCustomers[] = $reserve;
