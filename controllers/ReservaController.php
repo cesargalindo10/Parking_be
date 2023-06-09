@@ -80,10 +80,14 @@ class ReservaController extends \yii\web\Controller
 
     public function actionCreate()
     {
+        $data = Json::decode(Yii::$app->request->post('data'));
+        $customer = $data['cliente_id'];
+        $reserveOld = Reserva::find()->where(['cliente_id' => $customer,'finalizado' => false])->one();
+
+    if(!$reserveOld){
         /* Agregear fecha inicio y fin */
         $information = Informacion::find()->one();
         $reserve = new Reserva();
-        $data = Json::decode(Yii::$app->request->post('data'));
         $reserve->load($data, '');
         $fechaActual = Date('Y-m-d');
         if ($fechaActual < $information->fecha_inicio_reserva) {
@@ -136,7 +140,13 @@ class ReservaController extends \yii\web\Controller
                 'reserve' => $reserve->errors
             ];
         }
-        return $response;
+    }else{
+        $response = [
+            'success' => false,
+            'message' => 'El cliente ya tiene reserva'
+        ];
+    }
+    return $response;
     }
 
     public function actionGetCustomerReserve($idCustomer)
