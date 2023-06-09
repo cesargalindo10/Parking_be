@@ -23,10 +23,10 @@ class UsuarioController extends \yii\web\Controller
 
             ]
          ];
-      $behaviors['authenticator'] = [
+      /*$behaviors['authenticator'] = [
             'class' => \yii\filters\auth\HttpBearerAuth::class,
             'except' => ['options','login','create-client']
-        ];
+        ];*/
         return $behaviors;
     }
 
