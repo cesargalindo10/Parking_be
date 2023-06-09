@@ -66,31 +66,28 @@ class ParqueoController extends \yii\web\Controller
 
     }
     public function actionCreate(){
-        $reg = Parqueo::find()->all();
-        foreach ($reg as $re) {
-            $re->delete();
-        }
         $params = Yii::$app->getRequest()->getBodyParams();
         $fila = (int)$params['nro_filas'];
         $colum = (int)$params['nro_columnas'];
+        $nombre = (string)$params['nombre'];
         $parking = new Parqueo();
-        $parking->id=1;
         $parking->load($params, "");
         try{
             if($parking->save()){
                 Yii::$app->getResponse()->getStatusCode(201);
                 $response = [
                     'success'=>true,
-                    'message'=> 'Usuarion se creo con Exito',
-                    'data'=>$parking
+                    'message'=> 'Parqueo se creo con Exito',
+                    'data'=>$parking,
+                
                 ];
-
-                $this->createPlaza($fila * $colum);
+                $park=Parqueo::find()->where(['nombre'=>$nombre])->one();
+                $this->createPlaza($fila * $colum, $park->id );
             }else{
                 Yii::$app->getResponse()->getStatusCode(222,'La validacion de datos a fallado');
                 $response=[
                     'success'=>false,
-                    'message'=>'fallo al crear usuario',
+                    'message'=>'fallo al crear parqueo',
                     'data'=>$parking->errors
                 ];
             }
@@ -99,7 +96,7 @@ class ParqueoController extends \yii\web\Controller
             Yii::$app->getResponse()->getStatusCode(500);
             $response = [
                 'success'=>false,
-                'message'=>'ocurrio un error al crear usuario',
+                'message'=>'ocurrio un error al crear parqueo',
                 'data'=>$e->getMessage()
             ];
         }
@@ -110,13 +107,11 @@ class ParqueoController extends \yii\web\Controller
 
     public function actionUpdate($id)
     {
-        $reg = Plaza::find()->all();
-        foreach ($reg as $re) {
-            $re->delete();
-        }
+     
         $params = Yii::$app->getRequest()->getBodyParams();
         $fila = (int)$params['nro_filas'];
         $colum = (int)$params['nro_columnas'];
+        $nombre = (string)$params['nombre'];
         $parking = Parqueo::findOne($id);
         if ($parking) {
             $parking->load($params, '');
@@ -127,7 +122,12 @@ class ParqueoController extends \yii\web\Controller
                         'message' => 'se actualizo el parqueo de manera correcta',
                         'data' => $parking
                     ];
-                    $this->createPlaza($fila * $colum);
+                    $reg = Plaza::find()->where(['parqueo_id'=>$id])->all();
+                    foreach ($reg as $re) {
+                        $re->delete();
+                    }
+                    $park=Parqueo::find()->where(['nombre'=>$nombre])->one();
+                    $this->createPlaza($fila * $colum, $park->id );
                 } else {
                     Yii::$app->getResponse()->setStatusCode(422, 'La validacion de datos a fallado.');
                     $response = [
@@ -194,16 +194,13 @@ class ParqueoController extends \yii\web\Controller
         }
         return $response;
     }
-    public function createPlaza($n)
+    public function createPlaza($n, $id)
     {
-        //$params = Yii::$app->getRequest()->getBodyParams();
-        
-        //$plaza->load($params, "");
         for($i=0;$i<$n;$i++){
             $plaza = new Plaza();
             $plaza->estado="camino";
             $plaza->numero=$i."";
-            $plaza->parqueo_id=1;
+            $plaza->parqueo_id=$id;
             $plaza->habilitado=false;
 
             try{
@@ -236,26 +233,47 @@ class ParqueoController extends \yii\web\Controller
 
         return $response;
     }
-    public function actionTest(){
-     $params = Yii::$app->getRequest()->getBodyParams();
-     return $params['nombre'];
-    }
 
-    public function actionGetInfoParking(){
-        $parking = Parqueo::find()->one();
+    public function actionGetInfoParking($idParking){
+        $parking = Parqueo::findOne($idParking);
         if($parking){
+            $places = Plaza::find()
+                        ->where(['parqueo_id' => $idParking])
+                        ->orderBy(['id' => SORT_ASC])
+                        ->all();
             $response = [
                 'success' => true,
                 'message' => 'Informacion de parqueo',
-                'parking' => $parking
+                'parking' => $parking,
+                'places' => $places
             ];
         }else{
             $response = [
                 'success' => false,
                 'message' => 'No existe parqueo',
-                'parking' => []
+                'parking' => [],
+                'places' => []
             ];
         }
         return $response;
     }
+
+    public function actionGetParkings(){
+        $parkings = Parqueo::find()->all();
+        if($parkings){
+            $response = [
+                'success' => true,
+                'message' => 'Lista de parqueo',
+                'parkings' => $parkings
+            ];
+        }else{
+            $response = [
+                'success' => false,
+                'message' => 'No existe parqueo',
+                'parkings' => []
+            ];
+        }
+        return $response;
+    }
+
 }
