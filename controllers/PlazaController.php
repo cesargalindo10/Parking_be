@@ -46,9 +46,12 @@ class PlazaController extends \yii\web\Controller
         return $this->render('index');
     }
 
-    public function actionGetPlace($placeNumber){
+    public function actionGetPlace($placeNumber, $idParking){
         $place = Plaza::find()
-                        ->where(['numero' => $placeNumber])
+                        ->select(['plaza.*', 'parqueo.nombre as nombre'])
+                        ->innerJoin('parqueo', 'parqueo.id = plaza.parqueo_id')
+                        ->where(['numero' => $placeNumber, 'parqueo_id' => $idParking])
+                        ->asArray()
                         ->all();
 
         if($place){
@@ -66,8 +69,9 @@ class PlazaController extends \yii\web\Controller
         }
         return $response;
     }
-    public function actionGetPlaza(){
-        $plazas = Plaza::find()->orderBy("id ASC")->all();
+    public function actionGetPlaza($idParking){
+        //$plazas = Plaza::find()->orderBy("id ASC")->all();
+        $plazas = Plaza::find()->where(['parqueo_id'=>$idParking])->orderBy("id ASC")->all();
         if($plazas)
         {
             $response = [
