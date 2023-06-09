@@ -16,6 +16,7 @@ use Yii;
  * @property int $tarifa_id
  * @property int|null $cantidad
  * @property bool|null $couta
+ * @property bool $finalizado
  *
  * @property Cliente $cliente
  * @property Pago[] $pagos
@@ -42,7 +43,7 @@ class Reserva extends \yii\db\ActiveRecord
             [['fecha_fin', 'cliente_id', 'plaza_id', 'tarifa_id'], 'required'],
             [['cliente_id', 'plaza_id', 'tarifa_id', 'cantidad'], 'default', 'value' => null],
             [['cliente_id', 'plaza_id', 'tarifa_id', 'cantidad'], 'integer'],
-            [['couta'], 'boolean'],
+            [['couta', 'finalizado'], 'boolean'],
             [['estado'], 'string', 'max' => 25],
             [['cliente_id'], 'exist', 'skipOnError' => true, 'targetClass' => Cliente::class, 'targetAttribute' => ['cliente_id' => 'id']],
             [['plaza_id'], 'exist', 'skipOnError' => true, 'targetClass' => Plaza::class, 'targetAttribute' => ['plaza_id' => 'id']],
@@ -65,6 +66,7 @@ class Reserva extends \yii\db\ActiveRecord
             'tarifa_id' => 'Tarifa ID',
             'cantidad' => 'Cantidad',
             'couta' => 'Couta',
+            'finalizado' => 'Finalizado',
         ];
     }
 

@@ -142,7 +142,7 @@ class ReservaController extends \yii\web\Controller
     public function actionGetCustomerReserve($idCustomer)
     {
         $reserve = Reserva::find()
-            ->where(['cliente_id' => $idCustomer])
+            ->where(['cliente_id' => $idCustomer, 'finalizado' => false])
             ->with('pagos')
             ->with('tarifa')
             ->with('plaza')
@@ -248,7 +248,7 @@ class ReservaController extends \yii\web\Controller
                 $payments = Pago::find()->where(['reserva_id' => $reserve['id']])->all();
                 $nroCoutas = 0;
                 for ($j=0; $j < count($payments); $j++) { 
-                    $nroCoutas += $payments[$i] -> nro_cuotas_pagadas; 
+                    $nroCoutas += $payments[$j] -> nro_cuotas_pagadas; 
                 }
                 if($this -> calculateMonth($nroCoutas) ){
                     $debtorCustomers[] = $reserve;
@@ -290,9 +290,5 @@ class ReservaController extends \yii\web\Controller
         }else{
             return false;
         }
-    }
-    public function actionTest(){
-        $date = intval( Date('m'));
-    return $date;
     }
 }

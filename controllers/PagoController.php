@@ -84,9 +84,9 @@ class PagoController extends \yii\web\Controller
             $totalPaid = $this->calculatePaid($reserve -> id);
             $tarifa = Tarifa::findOne($reserve -> tarifa_id);
             $plaza = Plaza::findOne($reserve -> plaza_id);
+            $plaza -> estado = 'asignado';
             if($totalPaid >= $tarifa -> costo){
                 $reserve -> estado = 'pagado';  
-                $plaza -> estado = 'asignado';
             }
             $payment -> estado = true; 
             if($payment -> save() && $reserve -> save() && $plaza -> save()){
