@@ -9,6 +9,7 @@ use Yii;
 use Exception;
 use yii\data\Pagination;
 use yii\db\IntegrityException;
+use yii\rbac\Role;
 
 class UsuarioController extends \yii\web\Controller
 {
@@ -18,7 +19,7 @@ class UsuarioController extends \yii\web\Controller
             'class' => \yii\filters\VerbFilter::class,
             'actions' => [
                 'create-user'=>['POST'],
-                'update'=>['POST'],
+                'update-user'=>['POST'],
                 'login'=>['POST']
 
             ]
@@ -110,47 +111,95 @@ class UsuarioController extends \yii\web\Controller
         return $response;
 
     }
-    public function actionUpdate($idUser)
-    {
-        $params = Yii::$app->getRequest()->getBodyParams();
-        $user = Usuario::findOne($idUser);
-        if ($user) {
+    public function actionUpdateUser($idUser)
+{
+    $params = Yii::$app->getRequest()->getBodyParams();
+    $user = Usuario::findOne($idUser);
+    $auth = Yii::$app->authManager;
+    $roleP = $auth->getRole($params['rol']);
+    $roleDelete = $auth->getRolesByUser($idUser);
+   
+
+    if ($user) {
+        
+        try {
             $user->load($params, '');
-            try{
-                if ($user->save()) {
-                    $response = [
-                        'success' => true,
-                        'message' => 'se actualizo el usuario de manera correcta',
-                        'data' => $user
-                    ];
-                } else {
-                    Yii::$app->getResponse()->setStatusCode(422, 'La validacion de datos a fallado.');
-                    $response = [
-                        'success' => false,
-                        'message' => 'fallo al actualizar usuario',
-                        'data' => $user->errors
-                    ];
+
+            if (isset($params['password'])) {
+                $user->password_hash = Yii::$app->getSecurity()->generatePasswordHash($params["password"]);
+                
+            }
+            if($roleDelete){
+                foreach ($roleDelete as $role) {
+                    $auth->revoke($role, $idUser);
                 }
-            }catch(Exception $e){
+                $auth -> assign($roleP, $idUser);
+            }
+                
+                
+            if ($user->save()) {
+                $response = [
+                    'success' => true,
+                    'message' => 'Se actualizó el usuario correctamente',
+                    'data' => $user
+                ];
+            } else {
+                Yii::$app->getResponse()->setStatusCode(422, 'La validación de datos ha fallado.');
                 $response = [
                     'success' => false,
-                    'message' => 'Error al actualizar',
-                    'data' => $e->getMessage()
+                    'message' => 'Fallo al actualizar el usuario',
+                    'data' => $user->errors
                 ];
             }
-            
-            
-        }else{
-            Yii::$app->getResponse()->getStatusCode(404);
+        } catch (Exception $e) {
             $response = [
                 'success' => false,
-                'message' => 'user no encontrado',
-                
+                'message' => 'Error al actualizar',
+                'data' => $e->getMessage()
             ];
         }
-
-        return $response;
+    } else {
+        Yii::$app->getResponse()->setStatusCode(404);
+        $response = [
+            'success' => false,
+            'message' => 'Usuario no encontrado',
+        ];
     }
+
+    return $response;
+}
+public function actionTest($id){
+    //$params = Yii::$app->getRequest()->getBodyParams();
+    $user = Usuario::findOne($id);
+    $auth = Yii::$app->authManager;
+    $roles = $auth->getRolesByUser($id);
+    return $roles;
+}
+public function actionRemoveUserRole($userId, $roleName)
+{
+    $auth = Yii::$app->authManager;
+
+    // Obtener el usuario y el rol correspondiente
+    $user = Usuario::findOne($userId);
+    $role = $auth->getRole($roleName);
+
+    if ($user && $role) {
+        // Revocar el rol del usuario
+        $auth->revoke($role, $userId);
+
+        return [
+            'success' => true,
+            'message' => 'Asignación de rol eliminada correctamente',
+        ];
+    }
+
+    return [
+        'success' => false,
+        'message' => 'No se encontró el usuario o el rol',
+    ];
+}
+
+
     public function actionDelete($idUser){
         
         $user = Usuario::findOne($idUser);
@@ -211,11 +260,13 @@ class UsuarioController extends \yii\web\Controller
                 // Verificamos la contraseña
                 if (Yii::$app->security->validatePassword($pwd, $user->password_hash)) {
                    $role = $auth->getRolesByUser($user -> id);
+                   $permission = $auth->getPermissionsByUser($user -> id);
                     $response = [
                         "success" => true,
                         "message" => "Inicio de sesión exitoso",
                         "accessToken" => $user->access_token,
                         "rol"=>$role,
+                        "permission"=>$permission,
                         "id"=>$user->id,
                         "nombre"=>$user->nombre
 
@@ -408,4 +459,80 @@ class UsuarioController extends \yii\web\Controller
 
     }
 
+    public function actionCreateRol($nombre){
+        $params = Yii::$app->getRequest()->getBodyParams();
+        $role = new Role();
+        $role->name = $nombre;
+        $roleDesc = ucfirst($nombre);
+        $role->description = $roleDesc;
+        $auth = Yii::$app->authManager;
+       if($auth->add($role)) {
+        $response = [
+            'success'=>true,
+            'message'=> 'Rol se creo con Exito',           
+        ];
+        $this->actionAsignarPermissionToRol($nombre,$params);
+        
+       }else{
+        $response = [
+            'success'=>true,
+            'message'=> 'Error al crear rol',
+            ];
+       }
+       return $response;
+        
+    }
+    public function actionAsignarPermisos(){
+        $auth = Yii::$app->authManager;
+        $permission = $auth->getPermission('parqueo');
+        $auth->assign($permission, 5); // Asigna el permiso crearUsuarios al usuario con ID 6
+
+    }
+    public function actionAsignarPermissionToRol($nombreR,$params){
+       
+       // $params = ['dashboard', 'parqueo', 'informacion','usuarios','solicitud','tarifas','reclamos','plazas','customers','asignar','reportes','mora','roles'];
+        $authManager = Yii::$app->authManager;
+        $rol = $authManager->getRole($nombreR);
+        foreach ($params as $nombrePermiso) {
+            $permiso = $authManager->getPermission($nombrePermiso);
+            $authManager->addChild($rol, $permiso);
+        }
+        
+    }
+    public function actionGetRoles(){
+        $authManager = Yii::$app->authManager;
+        $roles = $authManager->getRoles();
+        if($roles){
+            $response = [
+                'success'=>true,
+                'message'=>"El rol ha sido eliminado correctamente.",
+                'roles'=>$roles
+            ];
+        }else{
+            $response = [
+                'success'=>false,
+                'message'=>"No hay Roles"
+            ];
+        }
+        return $response;
+    }
+    public function actionDeleteRol($nombre){
+        // Elimina el rol
+        $authManager = Yii::$app->authManager;  
+        $rol = $authManager->getRole($nombre);
+        if ($rol !== null) {
+            $authManager->remove($rol);
+            $response = [
+                'success'=>true,
+                'message'=>"El rol ha sido eliminado correctamente."
+            ];
+      
+        } else {
+            $response = [
+                'success'=>false,
+                'message'=>"Fallo al eliminar Rol"
+            ];
+        }
+        return $response;
+    }
 }
