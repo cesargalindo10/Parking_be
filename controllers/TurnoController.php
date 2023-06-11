@@ -74,4 +74,53 @@ class TurnoController extends \yii\web\Controller
         return $this->render('index');
     }
 
+    public function actionGetTurnos(){
+        $turnos = Turno::find()
+                        ->orderBy(['id' => SORT_DESC])    
+                        ->all();
+        return [
+            'success' => true,
+            'message' => 'Lista de turnos',
+            'turnos' => $turnos
+        ];
+    }
+
+    public function actionUpdate($id){
+        $turno = Turno::findOne($id);
+        $params = Yii::$app->getRequest()->getBodyParams();
+        $turno -> load($params, '');
+        if($turno -> save()){
+            $response = [
+                'success'=>true,
+                'message'=> 'Turno se actualizo con Exito',
+                'turno'=>$turno
+            ];
+        }else{
+            $response = [
+                'success'=>false,
+                'message'=> 'Ocurrio un error',
+                'turno'=>$turno
+            ];
+        }
+        return $response;
+    }
+
+    public function actionDeleteTurno($id){
+        $turno = Turno::findOne($id);
+        $turno -> estado = 0;
+        if($turno -> save()){
+            $response = [
+                'success'=>true,
+                'message'=> 'Turno se actualizo con Exito',
+                'turno'=>$turno
+            ];
+        }else{
+            $response = [
+                'success'=>false,
+                'message'=> 'Ocurrio un error',
+                'turno'=>$turno
+            ];
+        }
+        return $response;
+    }
 }

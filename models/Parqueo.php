@@ -9,7 +9,7 @@ use Yii;
  *
  * @property int $id
  * @property string $nombre
- * @property int $nro_plazas
+ * @property int|null $nro_plazas
  * @property int|null $plazas_disponibles
  * @property int|null $plazas_ocupadas
  * @property int $nro_filas
@@ -34,10 +34,11 @@ class Parqueo extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['nombre', 'nro_plazas', 'nro_filas', 'nro_columnas'], 'required'],
+            [['nombre', 'nro_filas', 'nro_columnas'], 'required'],
             [['nro_plazas', 'plazas_disponibles', 'plazas_ocupadas', 'nro_filas', 'nro_columnas'], 'default', 'value' => null],
             [['nro_plazas', 'plazas_disponibles', 'plazas_ocupadas', 'nro_filas', 'nro_columnas'], 'integer'],
-            [['nombre', 'descripcion'], 'string', 'max' => 80],
+            [['descripcion'], 'string'],
+            [['nombre'], 'string', 'max' => 80],
         ];
     }
 

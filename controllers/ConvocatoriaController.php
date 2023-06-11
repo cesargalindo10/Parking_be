@@ -8,7 +8,7 @@ use Yii;
 use yii\helpers\Json;
 use yii\web\UploadedFile;
 
-class InformacionController extends \yii\web\Controller
+class ConvocatoriaController extends \yii\web\Controller
 {
     public function behaviors()
     {
@@ -27,17 +27,22 @@ class InformacionController extends \yii\web\Controller
     {
         $information = Informacion::find()->one();
         if($information){
-            $convocatoria = Convocatoria::find()->orderBy(['id' => SORT_DESC])->one();
             $response = [
                 'success' => true,
                 'message' => 'Lista de informacion',
                 'information' => [
                     'mensaje_mora' => $information -> mensaje_mora,
                     'atencion' => $information -> atencion,
-                    'telefono' => $information -> telefono,
+                    'foto' => $information -> foto,
+                    'convocatoria' => $information -> convocatoria,
                     'qr' => $information -> qr,
                 ],
-                'dates' => $convocatoria 
+                'dates' => [
+                    'fecha_pub_conv' => $information -> fecha_pub_conv,
+                    'fecha_inicio_reserva' => $information -> fecha_inicio_reserva,
+                    'fecha_limite_reserva' => $information -> fecha_limite_reserva,
+                    'fecha_fin_reserva' => $information -> fecha_fin_reserva,
+                ]
             ];
         }else{
             $response = [
@@ -61,7 +66,7 @@ class InformacionController extends \yii\web\Controller
         return parent::beforeAction($action);
     }
 
-    public function actionUpdateInformation()
+    public function actionUpdateConvocatoria()
     {
         $information = Informacion::find()->one();
         /* Si existe actualizar  */
@@ -74,29 +79,6 @@ class InformacionController extends \yii\web\Controller
             $imgQr->saveAs(Yii::getAlias('@app/web/upload/'.$fileName));
             $information -> qr = $fileName;
         }
-        $data = Json::decode(Yii::$app->request->post('data'));
-   
-        $information -> load($data, '');
-
-        if ($information->save()) {
-            $response = [
-                'success' => true,
-                'message' => 'Se actualizo correctamente',
-                'information' => $information
-            ];
-        } else {
-            $response = [
-                'success' => false,
-                'message' => 'Ocurrio un error',
-                'information' => $information->errors
-            ];
-        }
-
-        return $response;
-    }
-    public function actionCreateConvocatoria(){
-        $information = new Convocatoria();
-     
         $imgConvocatoria = UploadedFile::getInstanceByName('imgConvocatoria');
         if($imgConvocatoria ){
             $fileName = uniqid() . '.' . $imgConvocatoria->getExtension();
@@ -133,6 +115,90 @@ class InformacionController extends \yii\web\Controller
             ];
         }
 
+        return $response;
+    }
+    public function actionCreateConvocatoria(){
+        $information = new Convocatoria();
+     
+        $imgConvocatoria = UploadedFile::getInstanceByName('imgConvocatoria');
+        if($imgConvocatoria ){
+            $fileName = uniqid() . '.' . $imgConvocatoria->getExtension();
+            $imgConvocatoria->saveAs(Yii::getAlias('@app/web/upload/'. $fileName));
+            $information -> convocatoria = $fileName;
+        }
+        $data = Json::decode(Yii::$app->request->post('data'));
+    
+        $information -> load($data, '');
+
+        if ($information->save()) {
+            $response = [
+                'success' => true,
+                'message' => 'Se creo correctamente',
+                'information' => $information
+            ];
+        } else {
+            $response = [
+                'success' => false,
+                'message' => 'Ocurrio un error',
+                'information' => $information->errors
+            ];
+        }
+
+        return $response;
+    }
+
+    public function actionGetConvocatorias (){
+        $convocatorias = Convocatoria::find()
+                        ->orderBy(['id' => SORT_DESC])
+                        ->all();    
+        if($convocatorias){
+            $response = [
+                'success' => true,
+                'message' => 'Lista de convocatorias',
+                'convocatorias' => $convocatorias
+            ];
+        }else{
+            $response = [
+                'success' => false,
+                'message' => 'No existen convocatorias',
+                'convocatorias' => $convocatorias
+            ];
+        }   
+        return $response;
+    }
+
+    public function actionDelete($id){
+        $convocatoria = Convocatoria::findOne($id);
+        if($convocatoria -> delete()){
+            $convocatorias = Convocatoria::find()->all();
+            $response = [
+                'success' => true,
+                'message' => 'Convocatoria eliminada con exito',
+                'convocatorias' => $convocatorias
+            ];
+        }else{
+            $response = [
+                'success' => false,
+                'message' => 'Ocurrio un error',
+            ];
+        }
+        return $response;
+    }
+    public function actionGetConvocatoria(){
+        $convocatoria = Convocatoria::find()->orderBy(['id' => SORT_DESC])->one();
+        if($convocatoria){
+            $response = [
+                'success' => true,
+                'message' => 'Convocatoria eliminada con exito',
+                'convocatoria' => $convocatoria
+            ];
+        }else{
+            $response = [
+                'success' => false,
+                'message' => 'Convocatoria eliminada con exito',
+                'convocatoria' => $convocatoria
+            ];
+        }
         return $response;
     }
 }

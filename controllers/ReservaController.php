@@ -2,7 +2,9 @@
 
 namespace app\controllers;
 
+use app\models\Convocatoria;
 use app\models\Informacion;
+use app\models\Notificacion;
 use app\models\Pago;
 use app\models\Plaza;
 use app\models\Reserva;
@@ -40,7 +42,7 @@ class ReservaController extends \yii\web\Controller
         return parent::beforeAction($action);
     }
 
-    public function actionIndex($pageSize = 5)
+    public function actionIndex($pageSize = 100)
     {
         $query = Reserva::find()
             ->with('cliente')
@@ -86,7 +88,7 @@ class ReservaController extends \yii\web\Controller
 
     if(!$reserveOld){
         /* Agregear fecha inicio y fin */
-        $information = Informacion::find()->one();
+        $information = Convocatoria::find()->orderBy(['id' => SORT_DESC])->one();
         $reserve = new Reserva();
         $reserve->load($data, '');
         $fechaActual = Date('Y-m-d');
@@ -106,6 +108,7 @@ class ReservaController extends \yii\web\Controller
                 $pay->total = $data['total'];
                 $pay->tipo_pago = $data['tipo_pago'];
                 $pay->estado = false;
+                $pay->estado_plaza = 'pendiente';
                 $imgVoucher = UploadedFile::getInstanceByName('img');
 
                 if ($imgVoucher) {
@@ -202,6 +205,7 @@ class ReservaController extends \yii\web\Controller
         $request = Reserva::findOne($idRequest);
         if ($request) {
             $request->estado = 'cancelado';
+            $request->finalizado = true;
             $plaza = Plaza::findOne($request->plaza_id);
             $plaza->estado = 'disponible';
             if ($request->save() && $plaza->save()) {
@@ -281,7 +285,7 @@ class ReservaController extends \yii\web\Controller
         return $response;
     }
     public function calculateMonth ($nroCoutas){
-        $information = Informacion::find()->one();
+        $information = Convocatoria::find()->orderBy(['id' => SORT_DESC])->one();
         $startMonth = mb_substr( $information -> fecha_inicio_reserva, 5, 2);
         $startYear = mb_substr( $information -> fecha_inicio_reserva, 0, 4);
         $plus = $startMonth + $nroCoutas;
@@ -300,5 +304,58 @@ class ReservaController extends \yii\web\Controller
         }else{
             return false;
         }
+    }
+
+    public function actionSendNotification(){
+        $reserves = Reserva::find()
+                    ->with('cliente')    
+                    ->asArray()
+                    ->all();
+        $debtorCustomers = [];
+        for ($i=0; $i < count($reserves); $i++) { 
+            $reserve = $reserves[$i];
+            if($reserve['couta']){
+                $payments = Pago::find()->where(['reserva_id' => $reserve['id']])->all();
+                $nroCoutas = 0;
+                for ($j=0; $j < count($payments); $j++) { 
+                    $nroCoutas += $payments[$j] -> nro_cuotas_pagadas; 
+                }
+                if($this -> calculateMonth($nroCoutas) ){
+                    $debtorCustomers[] = $reserve;
+                }
+            }
+        }
+        $information = Informacion::find()->one();
+        if($debtorCustomers){
+            for ($i=0; $i < count($debtorCustomers); $i++) { 
+                $debtor = $debtorCustomers[$i];
+                $notification = new Notificacion();
+                $notification -> mensaje = $information -> mensaje_mora;
+                $notification -> cliente_id = $debtor['cliente']['id'];
+                if(!$notification -> save()){
+                    return $information -> errors;
+                }
+            }
+            $reponse = [
+                'success' => true,
+                'message' => 'Mensajes enviados con exito'
+            ];
+        }else{
+            $reponse = [
+                'success' => false,
+                'message' => 'No existen deudores'
+            ];
+        }
+        return $reponse;
+    }
+
+    public function actionGetDetailReserve(){
+        $reserves = Pago::find()
+                        ->select(['sum(total)', 'reserva.estado'])
+                        ->innerJoin('reserva', 'reserva.id=pago.reserva_id')
+                        ->groupBy(['reserva_id', 'reserva.estado'])
+                        ->asArray()
+                        ->all(); 
+        return $reserves;
     }
 }

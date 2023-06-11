@@ -37,7 +37,7 @@ class TurnoUsuarioController extends \yii\web\Controller
     }
     public function actionGetTurn()
     {
-        $turns = Turno::find()->all();
+        $turns = Turno::find()->where(['estado' => true])->all();
         return $turns;
     }
     public function actionGetUser()
@@ -207,5 +207,26 @@ class TurnoUsuarioController extends \yii\web\Controller
         $turn = TurnoUsuario::find()->where(['usuario_id' => 6])->all();
         //$turn_n = Turno::findOne($turn['turno_id']);
         return $turn[0]->turno_id;
+    }
+
+    public function actionGetTurnoPorUsuario(){
+        $userWithTurnos = Usuario::find()
+                            ->with('turno')
+                            ->asArray()
+                            ->all();
+        if($userWithTurnos){
+            $response = [
+                'success' => true,
+                'message' => 'Lista de usuarios',
+                'userWithTurnos' => $userWithTurnos
+            ];
+        }else{
+            $response = [
+                'success' => false,
+                'message' => 'NO existen usuarios',
+                'userWithTurnos' => []
+            ];
+        }
+        return $response;
     }
 }

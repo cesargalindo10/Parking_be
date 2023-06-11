@@ -11,6 +11,7 @@ use Yii;
  * @property string $hora_inicio
  * @property string $hora_fin
  * @property int $id
+ * @property bool|null $estado
  *
  * @property TurnoUsuario[] $turnoUsuarios
  */
@@ -32,6 +33,7 @@ class Turno extends \yii\db\ActiveRecord
         return [
             [['nombre', 'hora_inicio', 'hora_fin'], 'required'],
             [['hora_inicio', 'hora_fin'], 'safe'],
+            [['estado'], 'boolean'],
             [['nombre'], 'string', 'max' => 20],
         ];
     }
@@ -46,6 +48,7 @@ class Turno extends \yii\db\ActiveRecord
             'hora_inicio' => 'Hora Inicio',
             'hora_fin' => 'Hora Fin',
             'id' => 'ID',
+            'estado' => 'Estado',
         ];
     }
 

@@ -3,6 +3,11 @@
 namespace app\controllers;
 
 use app\models\Cliente;
+use app\models\Convocatoria;
+use app\models\Informacion;
+use app\models\Notificacion;
+use app\models\Pago;
+use app\models\Reserva;
 use Exception;
 use Yii;
 use yii\data\Pagination;
@@ -193,17 +198,47 @@ class ClienteController extends \yii\web\Controller
 
     public function actionGetCustomers(){
         $customers = Cliente::find()->all();
+        $customersFilter = [];
+        for ($i=0; $i < count($customers); $i++) { 
+            $customer = $customers[$i];
+            $exists = Reserva::find()->where(['cliente_id' => $customer['id'], 'finalizado' => false])->one(); 
+            if(!$exists){
+                $customersFilter[] = $customer;
+            }
+        }
         if($customers){
             $response = [
                 'success' => true,
                 'message' => 'Lista de clientes',
-                'customers' => $customers
+                'customers' => $customersFilter
             ];
         }else{
             $response = [
                 'success' => false,
                 'message' => 'No existen clientes',
                 'data' => []
+            ];
+        }
+        return $response;
+    }
+    
+    public function actionGetNotifications($idCustomer){
+        $notifications = Notificacion::find()
+                                ->where(['cliente_id' => $idCustomer])
+                                ->orderBy(['id' => SORT_DESC])
+                                ->limit(10)
+                                ->all();
+        if($notifications){
+            $response = [
+                'success' => true,
+                'message' => 'Lista de notificaciones',
+                'notifications' => $notifications
+            ];
+        }else{
+            $response = [
+                'success' => false,
+                'message' => 'No existen notificaciones',
+                'notifications' => []
             ];
         }
         return $response;

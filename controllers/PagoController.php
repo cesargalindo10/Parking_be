@@ -89,6 +89,7 @@ class PagoController extends \yii\web\Controller
                 $reserve -> estado = 'pagado';  
             }
             $payment -> estado = true; 
+            $payment -> estado_plaza = 'aprobado'; 
             if($payment -> save() && $reserve -> save() && $plaza -> save()){
                 $response = [
                     'success' => true,
@@ -140,5 +141,33 @@ class PagoController extends \yii\web\Controller
             ];
         }
         return $response;
-    }   
+    }  
+
+    public function actionCancelPayment ($idPayment){
+        $payment = Pago::findOne($idPayment);
+        if($payment){
+            $payment -> estado_plaza = 'cancelado';
+            $payment -> estado = false;
+            if($payment -> save()){
+                $response = [
+                    'success' => true,
+                    'message' => 'Se actualizo exitosamente',
+                    'payments' => $payment
+                ];
+            }else{
+                $response = [
+                    'success' => false,
+                    'message' => 'Existen errores',
+                    'errors' => $payment->errors
+                ];
+            }
+        }else{
+            $response = [
+                'success' => false,
+                'message' => 'No existe pago',
+                'payment' => []
+            ];
+        }
+        return $response;
+    }
 }

@@ -15,6 +15,7 @@ use Yii;
  * @property string|null $comprobante
  * @property bool $estado
  * @property string $tipo_pago
+ * @property string|null $estado_plaza
  *
  * @property Reserva $reserva
  */
@@ -40,7 +41,7 @@ class Pago extends \yii\db\ActiveRecord
             [['nro_cuotas_pagadas', 'reserva_id', 'total'], 'integer'],
             [['estado'], 'boolean'],
             [['comprobante'], 'string', 'max' => 50],
-            [['tipo_pago'], 'string', 'max' => 20],
+            [['tipo_pago', 'estado_plaza'], 'string', 'max' => 20],
             [['reserva_id'], 'exist', 'skipOnError' => true, 'targetClass' => Reserva::class, 'targetAttribute' => ['reserva_id' => 'id']],
         ];
     }
@@ -59,6 +60,7 @@ class Pago extends \yii\db\ActiveRecord
             'comprobante' => 'Comprobante',
             'estado' => 'Estado',
             'tipo_pago' => 'Tipo Pago',
+            'estado_plaza' => 'Estado Plaza',
         ];
     }
 

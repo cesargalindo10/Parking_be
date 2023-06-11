@@ -34,7 +34,7 @@ class ParqueoController extends \yii\web\Controller
         return parent::beforeAction($action);
     }
     public function actionIndex($pageSize = 5){
-        $query = Parqueo::find();
+        $query = Parqueo::find()->with('plazas');
 
         $pagination = new Pagination([
             'defaultPageSize' => $pageSize,
@@ -45,6 +45,7 @@ class ParqueoController extends \yii\web\Controller
                         ->orderBy('id DESC')
                         ->offset($pagination->offset)
                         ->limit($pagination->limit)        
+                        ->asArray()
                         ->all();
         
         $currentPage = $pagination->getPage() + 1;
