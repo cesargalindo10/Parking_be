@@ -73,6 +73,14 @@ class ParqueoController extends \yii\web\Controller
         $nombre = (string)$params['nombre'];
         $parking = new Parqueo();
         $parking->load($params, "");
+        $equal = Parqueo::find()->where(['nombre' => $nombre])->one();
+        if($equal){
+            return [
+                'success'=>false,
+                'message'=>'Error, ya existe ese nombre',
+            ];
+        }
+
         try{
             if($parking->save()){
                 Yii::$app->getResponse()->getStatusCode(201);
@@ -82,8 +90,9 @@ class ParqueoController extends \yii\web\Controller
                     'data'=>$parking,
                 
                 ];
-                $park=Parqueo::find()->where(['nombre'=>$nombre])->one();
-                $this->createPlaza($fila * $colum, $park->id );
+                //$park=Parqueo::find()->where(['nombre'=>$nombre])->one();
+                
+                $this->createPlaza($fila * $colum, $parking->id );
             }else{
                 Yii::$app->getResponse()->getStatusCode(222,'La validacion de datos a fallado');
                 $response=[
