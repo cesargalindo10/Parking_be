@@ -76,7 +76,8 @@ class TurnoController extends \yii\web\Controller
 
     public function actionGetTurnos(){
         $turnos = Turno::find()
-                        ->orderBy(['id' => SORT_DESC])    
+                        ->orderBy(['id' => SORT_DESC])   
+                        ->where(['estado' => true]) 
                         ->all();
         return [
             'success' => true,

@@ -37,7 +37,7 @@ class TurnoUsuarioController extends \yii\web\Controller
     }
     public function actionGetTurn()
     {
-        $turns = Turno::find()->where(['estado' => true])->all();
+        $turns = Turno::find()->all();
         return $turns;
     }
     public function actionGetUser()
