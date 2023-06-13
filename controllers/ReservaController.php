@@ -91,6 +91,7 @@ class ReservaController extends \yii\web\Controller
         $information = Convocatoria::find()->orderBy(['id' => SORT_DESC])->one();
         $reserve = new Reserva();
         $reserve->load($data, '');
+        date_default_timezone_set('America/La_Paz');
         $fechaActual = Date('Y-m-d');
         if ($fechaActual < $information->fecha_inicio_reserva) {
             $reserve->fecha_inicio = $information->fecha_inicio_reserva;
@@ -109,6 +110,9 @@ class ReservaController extends \yii\web\Controller
                 $pay->tipo_pago = $data['tipo_pago'];
                 $pay->estado = false;
                 $pay->estado_plaza = 'pendiente';
+                date_default_timezone_set('America/La_Paz');
+                $pay -> fecha = date('Y-m-d H:i:s');
+
                 $imgVoucher = UploadedFile::getInstanceByName('img');
 
                 if ($imgVoucher) {
