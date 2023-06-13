@@ -52,6 +52,8 @@ class PagoController extends \yii\web\Controller
             $data = Json::decode(Yii::$app->request->post('data'));
             $pay = new Pago();
             $pay -> load($data, '');
+            date_default_timezone_set('America/La_Paz');
+            $pay -> fecha = date('Y-m-d H:i:s');
             $imgVoucher = UploadedFile::getInstanceByName('img');
             if($imgVoucher){
                 $fileName = uniqid() . '.' . $imgVoucher->getExtension();
