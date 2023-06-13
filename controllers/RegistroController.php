@@ -65,6 +65,8 @@ class RegistroController extends \yii\web\Controller
         $register = new Registro();
         $register->usuario_id = $params['usuario_id'];
         $register->cliente_id = $params['cliente_id'];
+        date_default_timezone_set('America/La_Paz');
+        $register -> fecha_ingreso = date('Y-m-d H:i:s');
         $register->fecha_salida = null;
 
         if ($register->save()) {
