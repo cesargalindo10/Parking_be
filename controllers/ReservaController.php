@@ -95,6 +95,10 @@ class ReservaController extends \yii\web\Controller
         $fechaActual = Date('Y-m-d');
         if ($fechaActual < $information->fecha_inicio_reserva) {
             $reserve->fecha_inicio = $information->fecha_inicio_reserva;
+        }else{
+            date_default_timezone_set('America/La_Paz');
+            $fechaActual = Date('Y-m-d H:i:s');
+            $reserve -> fecha_inicio  = $fechaActual;
         }
         $reserve->fecha_fin = $data['fecha_fin'];
 
