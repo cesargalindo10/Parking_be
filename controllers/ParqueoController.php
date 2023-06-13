@@ -4,6 +4,7 @@ namespace app\controllers;
 
 use app\models\Parqueo;
 use app\models\Plaza;
+use app\models\Reserva;
 use Exception;
 use Yii;
 use yii\data\Pagination;
@@ -73,6 +74,14 @@ class ParqueoController extends \yii\web\Controller
         $nombre = (string)$params['nombre'];
         $parking = new Parqueo();
         $parking->load($params, "");
+        $equal = Parqueo::find()->where(['nombre' => $nombre])->one();
+        if($equal){
+            return [
+                'success'=>false,
+                'message'=>'Error, ya existe ese nombre',
+            ];
+        }
+
         try{
             if($parking->save()){
                 Yii::$app->getResponse()->getStatusCode(201);
@@ -82,8 +91,9 @@ class ParqueoController extends \yii\web\Controller
                     'data'=>$parking,
                 
                 ];
-                $park=Parqueo::find()->where(['nombre'=>$nombre])->one();
-                $this->createPlaza($fila * $colum, $park->id );
+                //$park=Parqueo::find()->where(['nombre'=>$nombre])->one();
+                
+                $this->createPlaza($fila * $colum, $parking->id );
             }else{
                 Yii::$app->getResponse()->getStatusCode(222,'La validacion de datos a fallado');
                 $response=[
@@ -242,6 +252,30 @@ class ParqueoController extends \yii\web\Controller
                         ->where(['parqueo_id' => $idParking])
                         ->orderBy(['id' => SORT_ASC])
                         ->all();
+
+            for ($i=0; $i < count($places); $i++) { 
+                $place = $places[$i];
+                $reserve = Reserva::find()->where(['plaza_id' => $place->id, 'finalizado' => false])->one();
+                date_default_timezone_set('America/La_Paz');
+                $dateCurrently = Date('Y-m-d H:i:s');
+                    
+                if($reserve && $dateCurrently > $reserve["fecha_fin"] ){
+                    $place -> estado = 'disponible';
+                    $reserve['finalizado'] = true;
+                    if(!$place -> save() || !$reserve -> save()){
+                        return [
+                            'success' => false,
+                            'message' => 'Ocurrio un error'
+                        ];
+                    }
+                }
+            }
+
+            $places = Plaza::find()
+            ->where(['parqueo_id' => $idParking])
+            ->orderBy(['id' => SORT_ASC])
+            ->all();
+                        
             $response = [
                 'success' => true,
                 'message' => 'Informacion de parqueo',
