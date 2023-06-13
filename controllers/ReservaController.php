@@ -235,7 +235,7 @@ class ReservaController extends \yii\web\Controller
             ->innerJoin('cliente', 'cliente.id = reserva.cliente_id')
             ->innerJoin('plaza', 'plaza.id = reserva.plaza_id')
             ->innerJoin('tarifa', 'tarifa.id = reserva.tarifa_id')
-            ->where(['plaza_id' => $idPlaza])
+            ->where(['plaza_id' => $idPlaza, 'finalizado' => false])
             ->asArray()
             ->one();
         if ($reserve) {
